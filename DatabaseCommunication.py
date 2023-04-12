@@ -163,6 +163,64 @@ def consulta10(uf):
     return query
 
 
+def insert_detalhes_pedido(id_pedido, cliente, loja, data_pedido):
+    query = "INSERT INTO DetalhesPedido "
+    query += f"VALUES({id_pedido}, {cliente}, {loja}, '{data_pedido}', NULL);"
+    return query
+
+
+def consultar_clientes_e_loja():
+    global cursor
+    ids = []
+    retorno = []
+    cli = -1
+    loja = -1
+    teste = True
+
+    query = "SELECT idcliente, nome FROM pessoas JOIN clientes ON idpessoa = pessoa;"
+    cursor.execute(query)
+    ret = cursor.fetchall()
+
+    print("")
+    # Printa o ID e o nome do CLIENTE para ser usado no INSERT
+    for i in range(0, len(ret)):
+        print(f"{ret[i][0]} - {ret[i][1]}")
+        ids.append(ret[i][0])
+
+    while teste:
+        cli = int(input("ID do cliente que fez a compra: "))
+        if cli not in ids:
+            print("ID incorreto!")
+        else:
+            teste = False
+
+    ids = []
+    teste = True
+
+    query2 = "SELECT idloja, nome FROM lojas;"
+    cursor.execute(query2)
+    ret = cursor.fetchall()
+
+    print("")
+    # Printa o ID e o nome da loja para ser usado no INSERT
+    for i in range(0, len(ret)):
+        print(f"{ret[i][0]} - {ret[i][1]}")
+        ids.append(ret[i][0])
+
+    while teste:
+        loja = int(input("ID da loja: "))
+        if loja not in ids:
+            print("ID incorreto!")
+        else:
+            teste = False
+
+    ids = []
+    teste = True
+    retorno.append(cli)
+    retorno.append(loja)
+    return retorno
+
+
 # conn.psycopg2.connect() - Conecta ao banco de dados
 # cursor = conn.cursor - Abre um cursor para fazer operações no banco
 # cursor.execute("COMANDO SQL") - Executa um comando sql
@@ -186,6 +244,7 @@ def main():
                  "Consulta8",
                  "Consulta9",
                  "Consulta10",
+                 "Registrar Venda",
                  "Encerrar comunicação"]
 
     connection_success = connect(dbname, user, password)
@@ -266,6 +325,19 @@ def main():
                 print_data()
 
             elif cmd == 11:
+                data = consultar_clientes_e_loja()
+                cliente = data[0]
+                loja = data[1]
+                print("")
+                print("Para inserção automática do ID, utilize -1")
+                id_pedido = int(input("Id do pedido: "))
+                print("")
+                print("Para inserção automática da data, utilize 2099-12-31")
+                data_pedido = (input("Data do pedido: "))
+                cursor.execute(insert_detalhes_pedido(id_pedido, cliente, loja, data_pedido))
+                print("")
+
+            elif cmd == 12:
                 if disconnect():
                     exec_consultas = False
 
